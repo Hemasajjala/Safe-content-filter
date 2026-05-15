@@ -16,4 +16,6 @@ Python-based system for detecting toxic and abusive online comments using NLP te
 - PyTorch
 - Transformers
 
-## **Learning Outcome** - Learned how AI can assist in identifying harmful online content and support digital platform moderation.
+## **Learning Outcome** 
+
+- Learned how AI can assist in identifying harmful online content and support digital platform moderation.
