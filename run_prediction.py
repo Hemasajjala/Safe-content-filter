@@ -17,26 +17,43 @@ def load_input_text(input_obj):
         text = input_obj
     else:
         raise ValueError("Invalid input type: input type must be a string or a txt file.")
+    
     return text
 
 
 def run(model_name, input_obj, dest_file, from_ckpt, device="cpu"):
     """Loads model from checkpoint or from model name and runs inference on the input_obj.
-    Displays results as a pandas DataFrame object.
+    Displays moderation analysis results for online content.
     If a dest_file is given, it saves the results to a txt file.
     """
+
     text = load_input_text(input_obj)
+
+    print("Analyzing content for harmful or abusive language...")
+
     if model_name is not None:
         model = Detoxify(model_name, device=device)
     else:
         model = Detoxify(checkpoint=from_ckpt, device=device)
+
     res = model.predict(text)
 
     res_df = pd.DataFrame(
         res,
-        index=[text] if isinstance(text, str) else text,  # pyright: ignore[reportArgumentType]
+        index=[text] if isinstance(text, str) else text,
     ).round(5)
+
+    print("\nContent Moderation Results:\n")
     print(res_df)
+
+    for comment in res_df.index:
+        toxicity_score = res_df.loc[comment].max()
+
+        if toxicity_score > 0.7:
+            print("\nWarning: Harmful content detected.")
+        else:
+            print("\nContent appears safe.")
+
     if dest_file is not None:
         res_df.index.name = "input_text"
         res_df.to_csv(dest_file)
@@ -45,31 +62,36 @@ def run(model_name, input_obj, dest_file, from_ckpt, device="cpu"):
 
 
 if __name__ == "__main__":
-    # args
+
     parser = argparse.ArgumentParser()
+
     parser.add_argument(
         "--input",
         type=str,
-        help="text, list of strings, or txt file",
+        help="Enter content or text file for moderation analysis",
     )
+
     parser.add_argument(
         "--model_name",
         default="unbiased",
         type=str,
         help="Name of the torch.hub model (default: unbiased)",
     )
+
     parser.add_argument(
         "--device",
         default="cpu",
         type=str,
         help="device to load the model on",
     )
+
     parser.add_argument(
         "--from_ckpt_path",
         default=None,
         type=str,
         help="Option to load from the checkpoint path (default: False)",
     )
+
     parser.add_argument(
         "--save_to",
         default=None,
@@ -92,6 +114,7 @@ if __name__ == "__main__":
         raise ValueError(
             "Please specify only one model source, can either load model from checkpoint path or from model_name."
         )
+
     if args.from_ckpt_path is not None:
         assert os.path.isfile(args.from_ckpt_path)
 
