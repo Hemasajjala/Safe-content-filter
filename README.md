@@ -1,4 +1,4 @@
-**Content Moderation System **
+**Content Moderation System**
 
 Python-based system for detecting toxic and abusive online comments using NLP techniques.
 
